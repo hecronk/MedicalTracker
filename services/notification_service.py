@@ -1,6 +1,6 @@
 """Сервис для отправки уведомлений о приеме лекарств."""
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from typing import List
 import pytz
 from aiogram import Bot
@@ -200,7 +200,7 @@ class NotificationService:
         
         # Вычисляем время следующей попытки
         retry_interval_minutes = config.RETRY_INTERVALS[attempt_number - 1]
-        retry_at = datetime.now(pytz.UTC) + timedelta(minutes=retry_interval_minutes)
+        retry_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=retry_interval_minutes)
         
         try:
             await self.notification_repo.create_retry(

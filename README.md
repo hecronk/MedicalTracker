@@ -50,7 +50,7 @@ pip install aiogram asyncpg sqlalchemy[asyncio] apscheduler python-dotenv pytz
 2. Создайте базу данных:
 
 ```sql
-CREATE DATABASE medicaltracker;
+CREATE DATABASE medical-tracker;
 ```
 
 ### 4. Настройка переменных окружения
@@ -66,7 +66,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=your_password_here
-DB_NAME=medicaltracker
+DB_NAME=medical-tracker
 
 # Scheduler Timezone
 SCHEDULER_TIMEZONE=UTC

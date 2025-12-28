@@ -1,6 +1,6 @@
 """Модели базы данных."""
 from datetime import datetime, date, time
-from sqlalchemy import BigInteger, String, Integer, Boolean, Text, Time, Date, ForeignKey, TIMESTAMP
+from sqlalchemy import BigInteger, String, Integer, Boolean, Text, Time, Date, ForeignKey, TIMESTAMP, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database.base import Base
 
@@ -13,8 +13,8 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     timezone: Mapped[str] = mapped_column(String(50), default='UTC', server_default='UTC')
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, server_default='CURRENT_TIMESTAMP')
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow, server_default='CURRENT_TIMESTAMP')
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
     
     # Relationships
     medications: Mapped[list['Medication']] = relationship(back_populates='user', cascade='all, delete-orphan')
@@ -28,8 +28,8 @@ class Medication(Base):
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, server_default='CURRENT_TIMESTAMP')
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow, server_default='CURRENT_TIMESTAMP')
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default='true')
     
     # Relationships
@@ -49,7 +49,7 @@ class MedicationSchedule(Base):
     time: Mapped[time] = mapped_column(Time, nullable=False)  # Время приема
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)  # NULL = бессрочно
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, server_default='CURRENT_TIMESTAMP')
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
     
     # Relationships
     medication: Mapped['Medication'] = relationship(back_populates='schedules')
@@ -62,8 +62,8 @@ class NotificationLog(Base):
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     schedule_id: Mapped[int] = mapped_column(Integer, ForeignKey('medication_schedules.id', ondelete='CASCADE'), nullable=False)
-    scheduled_time: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
-    sent_at: Mapped[datetime | None] = mapped_column(TIMESTAMP, nullable=True)
+    scheduled_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    sent_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='pending')  # 'pending', 'sent', 'failed', 'delivered'
     attempts: Mapped[int] = mapped_column(Integer, default=0, server_default='0')
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -80,7 +80,7 @@ class NotificationRetry(Base):
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     notification_log_id: Mapped[int] = mapped_column(Integer, ForeignKey('notification_logs.id', ondelete='CASCADE'), nullable=False)
-    retry_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
+    retry_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='pending')  # 'pending', 'completed', 'failed'
     

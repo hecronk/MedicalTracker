@@ -1,6 +1,6 @@
 """Планировщик для проверки расписаний и отправки уведомлений."""
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import pytz
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -34,7 +34,7 @@ async def process_retries(bot: Bot):
             service = NotificationService(session, bot)
             
             # Получаем все ожидающие повторные попытки
-            current_time = datetime.now(pytz.UTC)
+            current_time = datetime.now(timezone.utc).replace(tzinfo=None)
             retries = await notification_repo.get_pending_retries(current_time)
             
             logger.info(f"Найдено {len(retries)} повторных попыток для обработки")
@@ -114,20 +114,20 @@ def setup_scheduler(bot: Bot) -> AsyncIOScheduler:
     """
     scheduler = AsyncIOScheduler(timezone=pytz.UTC)
     
-    # Задача проверки расписаний каждый час (в :00 минут)
+    # Задача проверки расписаний
     scheduler.add_job(
         check_and_send_notifications,
-        trigger=CronTrigger(minute=0),  # Каждый час в :00 минут
+        trigger=CronTrigger(minute='*'),
         args=[bot],
         id='check_notifications',
         replace_existing=True,
         max_instances=1
     )
     
-    # Задача обработки повторных попыток каждые 5 минут
+    # Задача обработки повторных попыток
     scheduler.add_job(
         process_retries,
-        trigger=CronTrigger(minute='*/5'),  # Каждые 5 минут
+        trigger=CronTrigger(minute='*'),
         args=[bot],
         id='process_retries',
         replace_existing=True,
