@@ -31,7 +31,7 @@ def validate_time(time_str: str) -> Tuple[bool, time | None, str]:
         return False, None, "❌ Неверный формат времени. Используйте HH:MM (например, 09:00)"
 
 
-def validate_dose(dose_str: str) -> Tuple[bool, int | None, str]:
+def validate_dose(dose_str: str) -> Tuple[bool, float | None, str]:
     """
     Валидация количества таблеток.
     
@@ -39,7 +39,7 @@ def validate_dose(dose_str: str) -> Tuple[bool, int | None, str]:
         Tuple[bool, int | None, str]: (успех, количество, сообщение об ошибке)
     """
     try:
-        dose = int(dose_str.strip())
+        dose = float(dose_str.strip())
         if dose <= 0:
             return False, None, "❌ Количество таблеток должно быть положительным числом"
         if dose > 100:
@@ -47,7 +47,7 @@ def validate_dose(dose_str: str) -> Tuple[bool, int | None, str]:
         return True, dose, ""
     
     except ValueError:
-        return False, None, "❌ Введите число (например, 1, 2, 3)"
+        return False, None, "❌ Введите число (например, 0.5, 1, 1.5, 2, 3)"
 
 
 def validate_interval(interval_str: str) -> Tuple[bool, int | None, str]:

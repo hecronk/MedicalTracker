@@ -1,6 +1,6 @@
 """Модели базы данных."""
 from datetime import datetime, date, time
-from sqlalchemy import BigInteger, String, Integer, Boolean, Text, Time, Date, ForeignKey, TIMESTAMP, text
+from sqlalchemy import BigInteger, String, Integer, Boolean, Text, Time, Date, ForeignKey, TIMESTAMP, text, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database.base import Base
 
@@ -45,7 +45,7 @@ class MedicationSchedule(Base):
     medication_id: Mapped[int] = mapped_column(Integer, ForeignKey('medications.id', ondelete='CASCADE'), nullable=False)
     frequency_type: Mapped[str] = mapped_column(String(20), nullable=False)  # 'daily' или 'interval'
     interval_days: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Для 'interval' типа
-    dose: Mapped[int] = mapped_column(Integer, nullable=False)  # Количество таблеток
+    dose: Mapped[float] = mapped_column(Float, nullable=False)  # Количество таблеток
     time: Mapped[time] = mapped_column(Time, nullable=False)  # Время приема
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)  # NULL = бессрочно
