@@ -132,14 +132,14 @@ async def process_time(message: Message, state: FSMContext):
     await state.update_data(time=time_obj)
     await state.set_state(MedicationStates.waiting_for_dose)
     await message.answer(
-        "💊 Сколько таблеток нужно принять?",
+        "💊 Сколько препарата нужно принять?",
         reply_markup=get_cancel_reply_keyboard()
     )
 
 
 @router.message(MedicationStates.waiting_for_dose)
 async def process_dose(message: Message, state: FSMContext):
-    """Обработка количества таблеток."""
+    """Обработка количества препарата."""
     if message.text == "❌ Отменить":
         await state.clear()
         await message.answer("❌ Операция отменена.")
@@ -166,7 +166,7 @@ async def process_dose(message: Message, state: FSMContext):
         f"📝 Описание: {description_text}\n"
         f"⏰ Периодичность: {frequency_text}\n"
         f"🕐 Время приема: {time_str}\n"
-        f"💊 Количество таблеток: {data['dose']}\n\n"
+        f"💊 Количество препарата: {data['dose']}\n\n"
         "Подтвердите добавление:"
     )
     
@@ -203,7 +203,7 @@ async def confirm_medication(callback: CallbackQuery, state: FSMContext):
             "✅ Лекарство успешно добавлено!\n\n"
             f"💊 {medication.name}\n"
             f"⏰ Время приема: {schedule.time.strftime('%H:%M')}\n"
-            f"💊 Количество: {schedule.dose} таблеток\n\n"
+            f"💊 Количество: {schedule.dose} препарата\n\n"
             "Я буду напоминать вам о приеме в установленное время."
         )
         await callback.answer("✅ Лекарство добавлено!")

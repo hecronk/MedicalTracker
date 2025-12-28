@@ -125,7 +125,7 @@ class NotificationService:
                 "🔔 Напоминание о приеме лекарства!\n\n"
                 f"💊 {medication.name}\n"
                 f"⏰ Время: {time_str}\n"
-                f"💊 Количество: {schedule.dose} таблеток\n"
+                f"💊 Количество: {schedule.dose} препарата\n"
                 f"📅 Периодичность: {frequency_text}\n"
             )
             

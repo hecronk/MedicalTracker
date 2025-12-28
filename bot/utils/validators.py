@@ -33,7 +33,7 @@ def validate_time(time_str: str) -> Tuple[bool, time | None, str]:
 
 def validate_dose(dose_str: str) -> Tuple[bool, float | None, str]:
     """
-    Валидация количества таблеток.
+    Валидация количества препарата.
     
     Returns:
         Tuple[bool, int | None, str]: (успех, количество, сообщение об ошибке)
@@ -41,9 +41,7 @@ def validate_dose(dose_str: str) -> Tuple[bool, float | None, str]:
     try:
         dose = float(dose_str.strip())
         if dose <= 0:
-            return False, None, "❌ Количество таблеток должно быть положительным числом"
-        if dose > 100:
-            return False, None, "❌ Количество таблеток не может быть больше 100"
+            return False, None, "❌ Количество препарата должно быть положительным числом"
         return True, dose, ""
     
     except ValueError:
