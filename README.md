@@ -78,25 +78,13 @@ MAX_RETRY_ATTEMPTS=5
 ### 5. Инициализация базы данных
 
 ```bash
-poetry run python database/init_db.py
-```
-
-Или:
-
-```bash
-python database/init_db.py
+poetry run python -m database.init_db
 ```
 
 ## Запуск
 
 ```bash
 poetry run python main.py
-```
-
-Или:
-
-```bash
-python main.py
 ```
 
 ## Использование
@@ -123,7 +111,7 @@ python main.py
 
 ### Система уведомлений
 
-- Бот проверяет расписания **каждый час** (в :00 минут)
+- Бот проверяет расписания
 - Уведомления отправляются в установленное время с учетом часового пояса пользователя
 - При ошибке отправки система автоматически повторяет попытку:
   - 1-я попытка: через 5 минут
@@ -175,16 +163,6 @@ logging.basicConfig(
     level=logging.DEBUG,  # Изменить на DEBUG для подробных логов
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-```
-
-### Миграции базы данных
-
-Для управления миграциями рекомендуется использовать Alembic (уже включен в зависимости):
-
-```bash
-alembic init alembic
-alembic revision --autogenerate -m "Initial migration"
-alembic upgrade head
 ```
 
 ## Лицензия
