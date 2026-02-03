@@ -238,4 +238,22 @@ class NotificationRepository(BaseRepository):
         )
         await self.session.commit()
         return result.rowcount > 0
+    
+    async def get_user_notification_logs(self, user_id: int, since_date: datetime) -> List[NotificationLog]:
+        """Получить все логи уведомлений пользователя с указанной даты."""
+        result = await self.session.execute(
+            select(NotificationLog)
+            .join(NotificationLog.schedule)
+            .join(MedicationSchedule.medication)
+            .where(
+                Medication.user_id == user_id,
+                NotificationLog.scheduled_time >= since_date
+            )
+            .order_by(NotificationLog.scheduled_time.desc())
+            .options(
+                selectinload(NotificationLog.schedule)
+                .selectinload(MedicationSchedule.medication)
+            )
+        )
+        return list(result.scalars().all())
 

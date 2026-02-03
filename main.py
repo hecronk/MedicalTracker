@@ -7,7 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import config
 from bot.middlewares.user_middleware import UserMiddleware
 from bot.middlewares.error_middleware import ErrorMiddleware
-from bot.handlers import start, medication, schedule, edit_and_settings
+from bot.handlers import start, medication, schedule, edit_and_settings, simple_stats
 from scheduler.notification_scheduler import setup_scheduler
 
 # Настройка логирования
@@ -40,6 +40,7 @@ async def main():
     dp.include_router(medication.router)
     dp.include_router(schedule.router)
     dp.include_router(edit_and_settings.router)
+    dp.include_router(simple_stats.router)
     
     # Настройка планировщика
     scheduler = setup_scheduler(bot)
