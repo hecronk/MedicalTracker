@@ -14,11 +14,3 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     )
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
-
-
-def get_cancel_reply_keyboard() -> ReplyKeyboardMarkup:
-    """Клавиатура с кнопкой отмены."""
-    builder = ReplyKeyboardBuilder()
-    builder.add(KeyboardButton(text="❌ Отменить"))
-    return builder.as_markup(resize_keyboard=True)
-

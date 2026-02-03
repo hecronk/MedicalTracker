@@ -4,7 +4,6 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.states.medication_states import MedicationStates
 from bot.keyboards.inline import (
@@ -12,7 +11,7 @@ from bot.keyboards.inline import (
     get_confirmation_keyboard,
     get_cancel_keyboard
 )
-from bot.keyboards.reply import get_cancel_reply_keyboard
+
 from bot.utils.validators import validate_time, validate_dose, validate_interval
 from database.base import async_session_maker
 from services.medication_service import MedicationService
@@ -28,7 +27,7 @@ async def cmd_add_medication(message: Message, state: FSMContext):
     await message.answer(
         "💊 Давайте добавим новое лекарство!\n\n"
         "📝 Введите название препарата:",
-        reply_markup=get_cancel_reply_keyboard()
+        reply_markup=get_cancel_keyboard()
     )
 
 
@@ -49,7 +48,7 @@ async def process_name(message: Message, state: FSMContext):
     await state.set_state(MedicationStates.waiting_for_description)
     await message.answer(
         "📋 Введите описание приема (или отправьте /skip, чтобы пропустить):",
-        reply_markup=get_cancel_reply_keyboard()
+        reply_markup=get_cancel_keyboard()
     )
 
 
@@ -112,7 +111,7 @@ async def process_interval(message: Message, state: FSMContext):
     await state.set_state(MedicationStates.waiting_for_time)
     await message.answer(
         "⏰ Введите время приема в формате HH:MM (например, 09:00):",
-        reply_markup=get_cancel_reply_keyboard()
+        reply_markup=get_cancel_keyboard()
     )
 
 
@@ -133,7 +132,7 @@ async def process_time(message: Message, state: FSMContext):
     await state.set_state(MedicationStates.waiting_for_dose)
     await message.answer(
         "💊 Сколько препарата нужно принять?",
-        reply_markup=get_cancel_reply_keyboard()
+        reply_markup=get_cancel_keyboard()
     )
 
 
@@ -206,7 +205,7 @@ async def confirm_medication(callback: CallbackQuery, state: FSMContext):
             f"💊 Количество: {schedule.dose} препарата\n\n"
             "Я буду напоминать вам о приеме в установленное время."
         )
-        await callback.answer("✅ Лекарство добавлено!")
+        await callback.answer("✅ Лекарство добавлено!", reply_markup=None)
     
     except Exception as e:
         await callback.message.edit_text(

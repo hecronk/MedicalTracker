@@ -1,6 +1,6 @@
 """Обработчик команды /start."""
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import Command
 
 router = Router()
@@ -20,7 +20,7 @@ async def cmd_start(message: Message, db_user):
         "Начните с команды /add_medication, чтобы добавить первое лекарство!"
     )
     
-    await message.answer(welcome_text)
+    await message.answer(welcome_text, reply_markup= ReplyKeyboardRemove())
 
 
 @router.message(Command("help"))
@@ -45,4 +45,3 @@ async def cmd_help(message: Message):
     )
     
     await message.answer(help_text)
-
