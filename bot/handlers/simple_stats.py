@@ -63,54 +63,6 @@ async def cmd_stats(message: Message, db_user):
         await message.answer(f"❌ Ошибка при получении статистики: {str(e)}")
 
 
-@router.message(Command("take_now"))
-@router.message(F.text == "✅ Принял сейчас")
-async def cmd_take_now(message: Message, db_user):
-    """Быстрое принятие лекарства (простая версия)."""
-    try:
-        async with async_session_maker() as session:
-            service = MedicationService(session)
-            medications = await service.get_user_medications(db_user.id, active_only=True)
-        
-        if not medications:
-            await message.answer(
-                "📋 У вас нет добавленных лекарств.\n\n"
-                "Используйте /add_medication, чтобы добавить первое лекарство."
-            )
-            return
-        
-        # Получаем текущее время в часовом поясе пользователя
-        user_tz = pytz.timezone(db_user.timezone)
-        now_utc = datetime.now(pytz.UTC)
-        now_user_tz = now_utc.astimezone(user_tz)
-        current_time = now_user_tz.strftime("%H:%M")
-        
-        # Показываем лекарства для сегодняшнего приема
-        text = f"💊 Какие лекарства приняли сейчас ({current_time})?\n\n"
-        
-        today_meds = []
-        for medication in medications:
-            for schedule in medication.schedules:
-                if _should_take_today(schedule, now_user_tz.date()):
-                    time_str = schedule.time.strftime("%H:%M")
-                    today_meds.append(f"💊 {medication.name} ({time_str}) - {schedule.dose} препарата")
-        
-        if not today_meds:
-            await message.answer(
-                "✅ Сегодня нет запланированных приемов лекарств!\n"
-                "Отличная работа! 🎉"
-            )
-            return
-        
-        text += "\n".join(today_meds)
-        text += "\n\n✅ Отлично! Продолжайте в том же духе!"
-        
-        await message.answer(text)
-    
-    except Exception as e:
-        await message.answer(f"❌ Ошибка: {str(e)}")
-
-
 @router.message(Command("history"))
 @router.message(F.text == "📅 История")
 async def cmd_history(message: Message, db_user):

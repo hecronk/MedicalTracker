@@ -134,7 +134,7 @@ class NotificationService:
             
             notification_text += "\n✅ Не забудьте принять лекарство!"
             
-            # Отправляем сообщение
+            # Отправляем простое сообщение без кнопок
             message = await self.bot.send_message(
                 chat_id=user.id,
                 text=notification_text
