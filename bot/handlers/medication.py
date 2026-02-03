@@ -11,7 +11,8 @@ from bot.states.medication_states import MedicationStates
 from bot.keyboards.inline import (
     get_frequency_keyboard,
     get_confirmation_keyboard,
-    get_cancel_keyboard
+    get_cancel_keyboard,
+    get_end_date_keyboard
 )
 
 from bot.utils.validators import validate_time, validate_dose, validate_interval
@@ -153,13 +154,72 @@ async def process_dose(message: Message, state: FSMContext):
     
     await state.update_data(dose=dose)
     
-    # Получаем все данные
+    # Спрашиваем о дате окончания
+    await state.set_state(MedicationStates.waiting_for_end_date)
+    await message.answer(
+        "� Укажите дату окончания приема (в формате DD.MM.YYYY) или выберите опцию:",
+        reply_markup=get_end_date_keyboard()
+    )
+
+
+@router.callback_query(F.data.startswith("end_date:"), MedicationStates.waiting_for_end_date)
+async def process_end_date_choice(callback: CallbackQuery, state: FSMContext):
+    """Обработка выбора даты окончания."""
+    choice = callback.data.split(":")[1]
+    
+    if choice == "never":
+        await state.update_data(end_date=None)
+        await show_confirmation(callback, state)
+    elif choice == "specific":
+        await callback.message.edit_text(
+            "📅 Введите дату окончания в формате DD.MM.YYYY (например, 31.12.2024):",
+            reply_markup=get_cancel_keyboard()
+        )
+    
+    await callback.answer()
+
+
+@router.message(MedicationStates.waiting_for_end_date)
+async def process_end_date(message: Message, state: FSMContext):
+    """Обработка ввода даты окончания."""
+    if message.text == "❌ Отменить":
+        await state.clear()
+        await message.answer("❌ Операция отменена.")
+        return
+    
+    try:
+        # Парсим дату
+        date_str = message.text.strip()
+        end_date = datetime.strptime(date_str, "%d.%m.%Y").date()
+        
+        # Проверяем что дата не в прошлом
+        today = date.today()
+        if end_date < today:
+            await message.answer(
+                "❌ Дата окончания не может быть в прошлом. Попробуйте снова:",
+                reply_markup=get_end_date_keyboard()
+            )
+            return
+        
+        await state.update_data(end_date=end_date)
+        await show_confirmation(message, state)
+        
+    except ValueError:
+        await message.answer(
+            "❌ Неверный формат даты. Используйте DD.MM.YYYY (например, 31.12.2024):",
+            reply_markup=get_end_date_keyboard()
+        )
+
+
+async def show_confirmation(message_or_callback, state: FSMContext):
+    """Показать подтверждение добавления лекарства."""
     data = await state.get_data()
     
     # Формируем текст для подтверждения
     frequency_text = "Каждый день" if data['frequency_type'] == 'daily' else f"Через каждые {data.get('interval_days', 'N/A')} дней"
     time_str = data['time'].strftime("%H:%M")
     description_text = data.get('description') or "Не указано"
+    end_date_text = "Бессрочно" if data.get('end_date') is None else data['end_date'].strftime("%d.%m.%Y")
     
     confirmation_text = (
         "📋 Проверьте введенные данные:\n\n"
@@ -167,15 +227,23 @@ async def process_dose(message: Message, state: FSMContext):
         f"📝 Описание: {description_text}\n"
         f"⏰ Периодичность: {frequency_text}\n"
         f"🕐 Время приема: {time_str}\n"
-        f"💊 Количество препарата: {data['dose']}\n\n"
+        f"💊 Количество препарата: {data['dose']}\n"
+        f"📆 Дата окончания: {end_date_text}\n\n"
         "Подтвердите добавление:"
     )
     
     await state.set_state(MedicationStates.waiting_for_confirmation)
-    await message.answer(
-        confirmation_text,
-        reply_markup=get_confirmation_keyboard()
-    )
+    
+    if hasattr(message_or_callback, 'message'):  # CallbackQuery
+        await message_or_callback.message.edit_text(
+            confirmation_text,
+            reply_markup=get_confirmation_keyboard()
+        )
+    else:  # Message
+        await message_or_callback.answer(
+            confirmation_text,
+            reply_markup=get_confirmation_keyboard()
+        )
 
 
 @router.callback_query(F.data == "confirm:yes", MedicationStates.waiting_for_confirmation)
@@ -208,7 +276,7 @@ async def confirm_medication(callback: CallbackQuery, state: FSMContext):
                 time=data['time'],
                 start_date=start_date_user,
                 interval_days=data.get('interval_days'),
-                end_date=None  # Бессрочно
+                end_date=data.get('end_date')  # Используем дату окончания
             )
         
         await state.clear()

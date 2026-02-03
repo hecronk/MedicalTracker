@@ -9,8 +9,11 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     builder.add(
         KeyboardButton(text="💊 Добавить лекарство"),
         KeyboardButton(text="📋 Список лекарств"),
+        KeyboardButton(text="📅 План приема"),
+        KeyboardButton(text="✏️ Редактировать лекарство"),
         KeyboardButton(text="🗑 Удалить лекарство"),
+        KeyboardButton(text="⚙️ Настройки"),
         KeyboardButton(text="ℹ️ Помощь")
     )
-    builder.adjust(2)
+    builder.adjust(3, 2, 2)
     return builder.as_markup(resize_keyboard=True)
