@@ -44,14 +44,15 @@ async def cmd_list_medications(message: Message, db_user):
                 for schedule in medication.schedules:
                     time_str = schedule.time.strftime("%H:%M")
                     frequency_text = "каждый день" if schedule.frequency_type == 'daily' else f"через каждые {schedule.interval_days} дней"
-                    end_date_text = ""
-                    if schedule.end_date:
-                        end_date_text = f" (до {schedule.end_date.strftime('%d.%m.%Y')})"
-                    else:
-                        end_date_text = " (бессрочно)"
                     
                     text += f"   ⏰ {time_str} - {schedule.dose} препарата\n"
-                    text += f"   📅 {frequency_text}{end_date_text}\n"
+                    text += f"   📅 {frequency_text}\n"
+                    
+                    # Добавляем дату окончания приема
+                    if schedule.end_date:
+                        text += f"   📅 Дата окончания приема: {schedule.end_date.strftime('%d.%m.%Y')}\n"
+                    else:
+                        text += f"   📅 Дата окончания приема: бессрочно\n"
             
             text += "\n"
         
