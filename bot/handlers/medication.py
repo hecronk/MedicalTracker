@@ -1,5 +1,7 @@
 """Обработчики для добавления лекарств."""
-from datetime import date, time
+from datetime import date, time, datetime
+
+import pytz
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
@@ -185,6 +187,18 @@ async def confirm_medication(callback: CallbackQuery, state: FSMContext):
         async with async_session_maker() as session:
             service = MedicationService(session)
             
+            # Получаем часовой пояс пользователя из БД
+            from database.repository import UserRepository
+            user_repo = UserRepository(session)
+            db_user = await user_repo.get_by_id(callback.from_user.id)
+            user_timezone = db_user.timezone if db_user else 'UTC'
+            
+            # Получаем текущую дату в часовом поясе пользователя
+            user_tz = pytz.timezone(user_timezone)
+            now_utc = datetime.now(pytz.UTC)
+            now_user_tz = now_utc.astimezone(user_tz)
+            start_date_user = now_user_tz.date()
+            
             medication, schedule = await service.add_medication(
                 user_id=callback.from_user.id,
                 name=data['name'],
@@ -192,7 +206,7 @@ async def confirm_medication(callback: CallbackQuery, state: FSMContext):
                 frequency_type=data['frequency_type'],
                 dose=data['dose'],
                 time=data['time'],
-                start_date=date.today(),
+                start_date=start_date_user,
                 interval_days=data.get('interval_days'),
                 end_date=None  # Бессрочно
             )
