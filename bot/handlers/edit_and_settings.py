@@ -111,9 +111,9 @@ async def choose_field_to_edit(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@router.message(EditMedicationStates.waiting_for_new_value)
+@router.message(EditMedicationStates.waiting_for_new_value, F.text.regexp(r'^(?!^\d+$).+'))
 async def process_edit_value(message: Message, state: FSMContext):
-    """Обработка нового значения для редактирования."""
+    """Обработка нового значения для редактирования (не цифры)."""
     if message.text == "❌ Отменить":
         await state.clear()
         await message.answer("❌ Редактирование отменено.", reply_markup=get_main_menu_keyboard())
@@ -185,15 +185,26 @@ async def process_edit_frequency(callback: CallbackQuery, state: FSMContext):
 async def process_edit_interval(message: Message, state: FSMContext):
     """Обработка изменения интервала дней."""
     data = await state.get_data()
+    field = data['edit_field']
     
-    if data.get('edit_field') == 'frequency':
-        is_valid, interval, error_msg = validate_interval(message.text)
-        if not is_valid:
-            await message.answer(error_msg + "\n\nПопробуйте снова:")
-            return
-        
-        await state.update_data(new_value=('interval', interval))
-        await show_edit_confirmation(message, state)
+    # Проверяем что мы редактируем частоту и ожидаем интервал
+    if field != 'frequency':
+        await message.answer("❌ Неверный формат. Пожалуйста, введите текстовое значение.")
+        return
+    
+    interval_days = int(message.text.strip())
+    
+    if interval_days < 1:
+        await message.answer("❌ Интервал должен быть не менее 1 дня.")
+        return
+    
+    if interval_days > 365:
+        await message.answer("❌ Интервал не может быть больше 365 дней.")
+        return
+    
+    # Сохраняем значение как кортеж (type, interval_days)
+    await state.update_data(new_value=('interval', interval_days))
+    await show_edit_confirmation(message, state)
 
 
 async def show_edit_confirmation(message_or_callback, state: FSMContext):
@@ -203,14 +214,20 @@ async def show_edit_confirmation(message_or_callback, state: FSMContext):
     new_value = data['new_value']
     
     # Формируем текст для отображения нового значения
-    display_values = {
-        "name": new_value,
-        "description": new_value or "Без описания",
-        "time": new_value.strftime("%H:%M") if isinstance(new_value, time) else str(new_value),
-        "dose": str(new_value),
-        "frequency": "Каждый день" if new_value == "daily" else f"Через каждые {new_value[1]} дней" if isinstance(new_value, tuple) else str(new_value),
-        "end_date": "Бессрочно" if new_value is None else new_value.strftime("%d.%m.%Y")
-    }
+    if field == "description":
+        display_value = new_value or "Без описания"
+    elif field == "name":
+        display_value = new_value
+    elif field == "time":
+        display_value = new_value.strftime("%H:%M") if isinstance(new_value, time) else str(new_value)
+    elif field == "dose":
+        display_value = str(new_value)
+    elif field == "frequency":
+        display_value = "Каждый день" if new_value == "daily" else f"Через каждые {new_value[1]} дней" if isinstance(new_value, tuple) else str(new_value)
+    elif field == "end_date":
+        display_value = "Бессрочно" if new_value is None else new_value.strftime("%d.%m.%Y")
+    else:
+        display_value = str(new_value)
     
     field_names = {
         "name": "Название",
@@ -223,7 +240,7 @@ async def show_edit_confirmation(message_or_callback, state: FSMContext):
     
     confirmation_text = (
         f"📋 Подтвердите изменение:\n\n"
-        f"🔧 {field_names[field]}: {display_values[field]}\n\n"
+        f"🔧 {field_names[field]}: {display_value}\n\n"
         "Сохранить изменения?"
     )
     
@@ -282,7 +299,7 @@ async def confirm_edit(callback: CallbackQuery, state: FSMContext):
                             schedule.interval_days = None
                     elif field == "end_date":
                         schedule.end_date = new_value
-            
+
             await session.commit()
             
             await state.clear()
