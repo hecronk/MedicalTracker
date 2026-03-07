@@ -65,7 +65,7 @@ async def process_retries(bot: Bot):
                         # Увеличиваем номер попытки
                         next_attempt = retry.attempt_number + 1
                         
-                        if next_attempt <= config.MAX_RETRY_ATTEMPTS:
+                        if next_attempt <= config.max_retry_attempts:
                             # Планируем следующую попытку
                             await service.schedule_retry(
                                 notification_log.id,
@@ -84,7 +84,7 @@ async def process_retries(bot: Bot):
                             await notification_repo.update_log_status(
                                 notification_log.id,
                                 'failed',
-                                error_message=f"Превышено максимальное количество попыток ({config.MAX_RETRY_ATTEMPTS})"
+                                error_message=f"Превышено максимальное количество попыток ({config.max_retry_attempts})"
                             )
                             await notification_repo.update_retry_status(retry.id, 'failed')
                             

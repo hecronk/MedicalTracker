@@ -7,7 +7,7 @@ from config import config
 # Создаем async engine
 engine = create_async_engine(
     config.database_url,
-    echo=True,  # Логирование SQL запросов (можно отключить в продакшене)
+    echo=config.db_echo,
     future=True,
 )
 
