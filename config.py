@@ -31,15 +31,6 @@ class Config(BaseSettings):
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-    @computed_field  # type: ignore[misc]
-    @property
-    def sync_database_url(self) -> str:
-        """Возвращает синхронный URL для подключения к PostgreSQL (используется Alembic)."""
-        return (
-            f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
-
     # Настройки планировщика
     scheduler_timezone: str = Field("UTC", validation_alias="SCHEDULER_TIMEZONE")
 
