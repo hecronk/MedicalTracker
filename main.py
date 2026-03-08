@@ -20,13 +20,9 @@ logger = logging.getLogger(__name__)
 
 async def main():
     """Главная функция запуска бота."""
-    # Проверка наличия токена
-    if not config.BOT_TOKEN:
-        logger.error("❌ BOT_TOKEN не установлен! Проверьте файл .env")
-        return
-    
+    # Проверка наличия токена - pydantic-settings validates it at startup
     # Инициализация бота и диспетчера
-    bot = Bot(token=config.BOT_TOKEN)
+    bot = Bot(token=config.bot_token)
     dp = Dispatcher(storage=MemoryStorage())
     
     # Регистрация middleware (порядок важен - последний добавленный выполняется первым)

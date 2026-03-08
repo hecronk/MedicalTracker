@@ -1,30 +1,18 @@
-"""Скрипт инициализации базы данных."""
+"""Скрипт инициализации базы данных через Alembic.
+
+Для применения миграций из командной строки используйте:
+    alembic upgrade head
+
+Этот скрипт предназначен для проверки подключения и применения миграций
+в автоматическом режиме (например, при первом запуске):
+    python -m database.init_db
+"""
 import asyncio
 from sqlalchemy import text
-from database.base import engine, Base
-from database.models import User, Medication, MedicationSchedule, NotificationLog, NotificationRetry
+from database.base import engine
 
 
-async def init_db():
-    """Создать все таблицы в базе данных."""
-    async with engine.begin() as conn:
-        # Удаляем все таблицы (для разработки)
-        # В продакшене лучше использовать миграции Alembic
-        await conn.run_sync(Base.metadata.drop_all)
-        
-        # Создаем все таблицы
-        await conn.run_sync(Base.metadata.create_all)
-        
-        print("✅ База данных успешно инициализирована!")
-        print("📋 Созданы таблицы:")
-        print("   - users")
-        print("   - medications")
-        print("   - medication_schedules")
-        print("   - notification_logs")
-        print("   - notification_retries")
-
-
-async def test_connection():
+async def test_connection() -> bool:
     """Протестировать подключение к базе данных."""
     try:
         async with engine.begin() as conn:
@@ -37,12 +25,22 @@ async def test_connection():
         return False
 
 
-async def main():
+def run_migrations() -> None:
+    """Применить все ожидающие миграции Alembic."""
+    from alembic.config import Config
+    from alembic import command
+
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+    print("✅ Миграции успешно применены!")
+
+
+async def main() -> None:
     """Главная функция."""
     print("🔌 Проверка подключения к базе данных...")
     if await test_connection():
-        print("\n📦 Инициализация таблиц...")
-        await init_db()
+        print("\n📦 Применение миграций Alembic...")
+        run_migrations()
     else:
         print("\n⚠️  Убедитесь, что PostgreSQL запущен и настройки в .env файле корректны.")
 

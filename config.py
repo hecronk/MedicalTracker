@@ -1,37 +1,45 @@
 """Конфигурация приложения."""
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Загружаем переменные окружения из .env файла
-env_path = Path(__file__).parent / '.env'
-load_dotenv(dotenv_path=env_path)
+from pydantic import Field, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config:
-    """Класс конфигурации приложения."""
-    
+class Config(BaseSettings):
+    """Класс конфигурации приложения, загружаемый из переменных окружения."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
     # Telegram Bot Token
-    BOT_TOKEN: str = os.getenv('BOT_TOKEN', '')
-    
+    bot_token: str = Field(..., validation_alias="BOT_TOKEN")
+
     # PostgreSQL настройки
-    DB_HOST: str = os.getenv('DB_HOST', 'localhost')
-    DB_PORT: int = int(os.getenv('DB_PORT', '5432'))
-    DB_USER: str = os.getenv('DB_USER', 'postgres')
-    DB_PASSWORD: str = os.getenv('DB_PASSWORD', '')
-    DB_NAME: str = os.getenv('DB_NAME', 'medicaltracker')
-    
+    db_host: str = Field("localhost", validation_alias="DB_HOST")
+    db_port: int = Field(5432, validation_alias="DB_PORT")
+    db_user: str = Field("postgres", validation_alias="DB_USER")
+    db_password: str = Field("", validation_alias="DB_PASSWORD")
+    db_name: str = Field("medicaltracker", validation_alias="DB_NAME")
+
+    @computed_field  # type: ignore[misc]
     @property
     def database_url(self) -> str:
         """Возвращает URL для подключения к PostgreSQL."""
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-    
+        return (
+            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+
     # Настройки планировщика
-    SCHEDULER_TIMEZONE: str = os.getenv('SCHEDULER_TIMEZONE', 'UTC')
-    
+    scheduler_timezone: str = Field("UTC", validation_alias="SCHEDULER_TIMEZONE")
+
     # Настройки повторных попыток
-    MAX_RETRY_ATTEMPTS: int = int(os.getenv('MAX_RETRY_ATTEMPTS', '5'))
-    RETRY_INTERVALS: list[int] = [5, 15, 30, 60, 120]  # минуты
+    max_retry_attempts: int = Field(5, validation_alias="MAX_RETRY_ATTEMPTS")
+    retry_intervals: list[int] = [5, 15, 30, 60, 120]  # минуты
+
+    # Настройки логирования БД
+    db_echo: bool = Field(False, validation_alias="DB_ECHO")
 
 
 config = Config()

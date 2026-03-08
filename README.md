@@ -18,6 +18,8 @@
 - **aiogram 3.x** - асинхронный фреймворк для Telegram ботов
 - **PostgreSQL** - база данных
 - **SQLAlchemy (async)** - ORM
+- **Alembic** - миграции базы данных
+- **pydantic-settings** - типобезопасная конфигурация из переменных окружения
 - **APScheduler** - планировщик задач
 - **pytz** - работа с часовыми поясами
 
@@ -41,7 +43,7 @@ poetry install
 Или установите зависимости вручную:
 
 ```bash
-pip install aiogram asyncpg sqlalchemy[asyncio] apscheduler python-dotenv pytz
+pip install aiogram asyncpg sqlalchemy[asyncio] alembic apscheduler python-dotenv pytz pydantic-settings psycopg2-binary
 ```
 
 ### 3. Настройка базы данных
@@ -73,9 +75,27 @@ SCHEDULER_TIMEZONE=UTC
 
 # Retry Configuration
 MAX_RETRY_ATTEMPTS=5
+
+# Set to true to log SQL queries (useful for debugging)
+DB_ECHO=false
 ```
 
-### 5. Инициализация базы данных
+### 5. Применение миграций базы данных
+
+Используйте Alembic для создания таблиц и управления схемой:
+
+```bash
+# Применить все миграции (создать таблицы)
+alembic upgrade head
+
+# Создать новую миграцию после изменения моделей
+alembic revision --autogenerate -m "описание изменения"
+
+# Откатить последнюю миграцию
+alembic downgrade -1
+```
+
+Для быстрой проверки подключения и применения миграций:
 
 ```bash
 poetry run python -m database.init_db
@@ -126,7 +146,13 @@ poetry run python main.py
 ```
 MedicalTracker/
 ├── main.py                    # Точка входа
-├── config.py                  # Конфигурация
+├── config.py                  # Конфигурация (pydantic-settings)
+├── alembic.ini                # Конфигурация Alembic
+├── alembic/                   # Миграции базы данных
+│   ├── env.py                 # Окружение Alembic (async-aware)
+│   ├── script.py.mako         # Шаблон миграций
+│   └── versions/              # Файлы миграций
+│       └── 0001_initial_schema.py
 ├── bot/                       # Код бота
 │   ├── handlers/              # Обработчики команд
 │   ├── keyboards/             # Клавиатуры
@@ -137,7 +163,7 @@ MedicalTracker/
 │   ├── models.py              # SQLAlchemy модели
 │   ├── base.py                # Базовые классы
 │   ├── repository.py          # Репозитории
-│   └── init_db.py             # Инициализация БД
+│   └── init_db.py             # Применение миграций через Alembic
 ├── services/                  # Бизнес-логика
 │   ├── medication_service.py
 │   └── notification_service.py

@@ -194,12 +194,12 @@ class NotificationService:
         Returns:
             bool: Успех создания записи о повторной попытке
         """
-        if attempt_number > len(config.RETRY_INTERVALS):
+        if attempt_number > len(config.retry_intervals):
             logger.warning(f"Превышено максимальное количество попыток для лога {notification_log_id}")
             return False
         
         # Вычисляем время следующей попытки
-        retry_interval_minutes = config.RETRY_INTERVALS[attempt_number - 1]
+        retry_interval_minutes = config.retry_intervals[attempt_number - 1]
         retry_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=retry_interval_minutes)
         
         try:
