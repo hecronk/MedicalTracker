@@ -41,6 +41,8 @@ class Config(BaseSettings):
     # Настройки логирования БД
     db_echo: bool = Field(False, validation_alias="DB_ECHO")
 
+    # MTProto Proxy настройки
+    mtproto_proxy_url: str | None = Field(None, validation_alias="MTPROTO_PROXY_URL")
+
 
 config = Config()
-

@@ -22,7 +22,10 @@ async def main():
     """Главная функция запуска бота."""
     # Проверка наличия токена - pydantic-settings validates it at startup
     # Инициализация бота и диспетчера
-    bot = Bot(token=config.bot_token)
+    bot = Bot(
+        token=config.bot_token,
+        proxy=config.mtproto_proxy_url if config.mtproto_proxy_url else None
+    )
     dp = Dispatcher(storage=MemoryStorage())
     
     # Регистрация middleware (порядок важен - последний добавленный выполняется первым)
